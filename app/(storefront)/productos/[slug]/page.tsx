@@ -1,9 +1,9 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getProductBySlug } from "@/lib/data/products";
 import { getActiveDiscount, calculateFinalPrice } from "@/lib/pricing";
+import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 
 export default async function ProductoPage({
   params,
@@ -52,10 +52,14 @@ export default async function ProductoPage({
           {product.stock > 0 ? `${product.stock} unidades disponibles` : "Agotado temporalmente"}
         </p>
 
-        {/* TODO: se conecta al store de Zustand en la fase de carrito */}
-        <Button className="mt-6 w-full" size="lg" disabled={product.stock === 0}>
-          Agregar al carrito
-        </Button>
+        <AddToCartButton
+          productId={product.id}
+          slug={product.slug}
+          name={product.name}
+          image={cover}
+          price={finalPrice}
+          stock={product.stock}
+        />
       </div>
     </div>
   );
