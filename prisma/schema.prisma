@@ -48,6 +48,8 @@ model User {
   password  String // hash (bcrypt/argon2), nunca texto plano
   imageUrl  String? // foto de perfil
   role      UserRole @default(CLIENT)
+  language  String   @default("es")
+  theme     String   @default("light")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

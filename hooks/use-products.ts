@@ -24,6 +24,7 @@ export interface ProductInput {
   stock: number;
   categoryId: string;
   isActive: boolean;
+  discountPercentage?: number;
 }
 
 export function useProducts() {

@@ -9,11 +9,17 @@ export default async function EditarProductoPage({
 }) {
   const { id } = await params;
   const [product, categories] = await Promise.all([
-    prisma.product.findUnique({ where: { id } }),
+    prisma.product.findUnique({
+      where: { id },
+      include: { discounts: { where: { isActive: true } } },
+    }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   if (!product) notFound();
+
+  const activeDiscount = product.discounts[0];
+  const discountPercentage = activeDiscount ? activeDiscount.percentage.toString() : "";
 
   return (
     <div>
@@ -29,6 +35,7 @@ export default async function EditarProductoPage({
           categoryId: product.categoryId,
           isActive: product.isActive,
           images: product.images.join(", "),
+          discountPercentage,
         }}
       />
     </div>

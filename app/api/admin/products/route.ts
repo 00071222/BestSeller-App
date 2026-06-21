@@ -14,7 +14,7 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const products = await prisma.product.findMany({
-    include: { category: true },
+    include: { category: true, discounts: true },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(products);
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
-  const { name, description, images, price, stock, categoryId, isActive } =
+  const { name, description, images, price, stock, categoryId, isActive, discountPercentage } =
     await request.json();
 
   if (!name || !description || !categoryId || price == null || stock == null) {
@@ -50,6 +50,17 @@ export async function POST(request: Request) {
       isActive: isActive ?? true,
     },
   });
+
+  if (discountPercentage && Number(discountPercentage) > 0) {
+    await prisma.discount.create({
+      data: {
+        type: "PERMANENT",
+        percentage: Number(discountPercentage),
+        productId: product.id,
+        isActive: true,
+      },
+    });
+  }
 
   return NextResponse.json(product, { status: 201 });
 }
