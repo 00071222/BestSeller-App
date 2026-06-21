@@ -24,8 +24,19 @@ export async function POST(request: Request) {
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
-  const { name, description, images, price, stock, categoryId, isActive, discountPercentage } =
-    await request.json();
+  const {
+    name,
+    description,
+    images,
+    price,
+    stock,
+    categoryId,
+    isActive,
+    discountPercentage,
+    discountType,
+    discountStartsAt,
+    discountEndsAt,
+  } = await request.json();
 
   if (!name || !description || !categoryId || price == null || stock == null) {
     return NextResponse.json({ error: "Faltan campos obligatorios" }, { status: 400 });
@@ -54,8 +65,10 @@ export async function POST(request: Request) {
   if (discountPercentage && Number(discountPercentage) > 0) {
     await prisma.discount.create({
       data: {
-        type: "PERMANENT",
+        type: (discountType === "TEMPORARY" ? "TEMPORARY" : "PERMANENT") as "TEMPORARY" | "PERMANENT",
         percentage: Number(discountPercentage),
+        startsAt: discountStartsAt ? new Date(discountStartsAt) : new Date(),
+        endsAt: discountEndsAt ? new Date(discountEndsAt) : null,
         productId: product.id,
         isActive: true,
       },

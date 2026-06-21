@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Tag, DollarSign, Users, User, ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut } from "lucide-react";
+import { SidebarNav } from "@/components/admin/sidebar-nav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -18,36 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </p>
           </div>
           
-          <nav className="flex flex-col gap-1 text-sm font-medium">
-            <Link
-              href="/admin/products"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
-            >
-              <Tag className="h-4 w-4" />
-              <span>Productos</span>
-            </Link>
-            <Link
-              href="/admin/sales"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
-            >
-              <DollarSign className="h-4 w-4" />
-              <span>Ventas</span>
-            </Link>
-            <Link
-              href="/admin/users"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
-            >
-              <Users className="h-4 w-4" />
-              <span>Usuarios</span>
-            </Link>
-            <Link
-              href="/admin/profile"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
-            >
-              <User className="h-4 w-4" />
-              <span>Mi Perfil</span>
-            </Link>
-          </nav>
+          <SidebarNav />
         </div>
 
         <div className="space-y-2 border-t border-border pt-4">

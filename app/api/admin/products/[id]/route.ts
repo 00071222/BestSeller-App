@@ -16,8 +16,19 @@ export async function PATCH(
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const { id } = await params;
-  const { name, description, images, price, stock, categoryId, isActive, discountPercentage } =
-    await request.json();
+  const {
+    name,
+    description,
+    images,
+    price,
+    stock,
+    categoryId,
+    isActive,
+    discountPercentage,
+    discountType,
+    discountStartsAt,
+    discountEndsAt,
+  } = await request.json();
 
   const product = await prisma.product.update({
     where: { id },
@@ -30,18 +41,24 @@ export async function PATCH(
       const activeDiscount = await prisma.discount.findFirst({
         where: { productId: id, isActive: true },
       });
+      const discountData = {
+        type: (discountType === "TEMPORARY" ? "TEMPORARY" : "PERMANENT") as "TEMPORARY" | "PERMANENT",
+        percentage: pct,
+        startsAt: discountStartsAt ? new Date(discountStartsAt) : new Date(),
+        endsAt: discountEndsAt ? new Date(discountEndsAt) : null,
+        isActive: true,
+      };
+
       if (activeDiscount) {
         await prisma.discount.update({
           where: { id: activeDiscount.id },
-          data: { percentage: pct },
+          data: discountData,
         });
       } else {
         await prisma.discount.create({
           data: {
-            type: "PERMANENT",
-            percentage: pct,
+            ...discountData,
             productId: id,
-            isActive: true,
           },
         });
       }

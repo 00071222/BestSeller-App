@@ -3,6 +3,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
+export interface Discount {
+  id: string;
+  type: "PERMANENT" | "TEMPORARY";
+  percentage: string;
+  startsAt: string;
+  endsAt: string | null;
+  isActive: boolean;
+  productId: string;
+}
+
 export interface AdminProduct {
   id: string;
   name: string;
@@ -14,6 +24,7 @@ export interface AdminProduct {
   isActive: boolean;
   categoryId: string;
   category: { id: string; name: string };
+  discounts?: Discount[];
 }
 
 export interface ProductInput {
@@ -25,6 +36,9 @@ export interface ProductInput {
   categoryId: string;
   isActive: boolean;
   discountPercentage?: number;
+  discountType?: "PERMANENT" | "TEMPORARY";
+  discountStartsAt?: string;
+  discountEndsAt?: string | null;
 }
 
 export function useProducts() {

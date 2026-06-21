@@ -43,7 +43,7 @@ export default function AdminProfilePage() {
         if (data.theme) {
           setTheme(data.theme);
         }
-      } catch (err) {
+      } catch {
         toast.error("Error al cargar perfil");
       } finally {
         setLoading(false);
@@ -141,8 +141,9 @@ export default function AdminProfilePage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
-      const errMsg = err?.response?.data?.error ?? translations.errorPass;
+    } catch (err: unknown) {
+      const errorPayload = err as { response?: { data?: { error?: string } } };
+      const errMsg = errorPayload?.response?.data?.error ?? translations.errorPass;
       toast.error(errMsg);
     } finally {
       setSavingPassword(false);
@@ -288,37 +289,43 @@ export default function AdminProfilePage() {
             <CardContent>
               <form onSubmit={handleChangePassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">{translations.currentPass}</Label>
+                  <Label htmlFor="currentPassword" className="text-sm font-semibold text-foreground">
+                    {translations.currentPass}
+                  </Label>
                   <Input
                     id="currentPassword"
                     type="password"
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="bg-background/50"
+                    className="border border-border/80 bg-background shadow-sm focus-visible:ring-primary rounded-xl"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword">{translations.newPass}</Label>
+                    <Label htmlFor="newPassword" className="text-sm font-semibold text-foreground">
+                      {translations.newPass}
+                    </Label>
                     <Input
                       id="newPassword"
                       type="password"
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="bg-background/50"
+                      className="border border-border/80 bg-background shadow-sm focus-visible:ring-primary rounded-xl"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">{translations.confirmPass}</Label>
+                    <Label htmlFor="confirmPassword" className="text-sm font-semibold text-foreground">
+                      {translations.confirmPass}
+                    </Label>
                     <Input
                       id="confirmPassword"
                       type="password"
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="bg-background/50"
+                      className="border border-border/80 bg-background shadow-sm focus-visible:ring-primary rounded-xl"
                     />
                   </div>
                 </div>

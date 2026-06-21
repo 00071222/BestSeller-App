@@ -20,6 +20,21 @@ export default async function EditarProductoPage({
 
   const activeDiscount = product.discounts[0];
   const discountPercentage = activeDiscount ? activeDiscount.percentage.toString() : "";
+  const discountType = activeDiscount ? activeDiscount.type : "PERMANENT";
+
+  const formatDateTimeLocal = (date: Date | null | undefined) => {
+    if (!date) return "";
+    const pad = (num: number) => String(num).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    const mm = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  };
+
+  const discountStartsAt = activeDiscount ? formatDateTimeLocal(new Date(activeDiscount.startsAt)) : "";
+  const discountEndsAt = activeDiscount ? formatDateTimeLocal(activeDiscount.endsAt ? new Date(activeDiscount.endsAt) : null) : "";
 
   return (
     <div>
@@ -36,6 +51,9 @@ export default async function EditarProductoPage({
           isActive: product.isActive,
           images: product.images.join(", "),
           discountPercentage,
+          discountType,
+          discountStartsAt,
+          discountEndsAt,
         }}
       />
     </div>
