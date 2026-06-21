@@ -9,14 +9,15 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isOnAdmin = nextUrl.pathname.startsWith("/admin");
       const isOnAccount = nextUrl.pathname.startsWith("/cuenta");
+      const isOnCheckout = nextUrl.pathname.startsWith("/checkout");
 
       if (isOnAdmin) {
         return isLoggedIn && auth.user.role === "ADMIN";
       }
-      if (isOnAccount) {
+      if (isOnAccount || isOnCheckout) {
         return isLoggedIn;
       }
-      return true; // todo lo demás es público
+      return true;
     },
   },
   providers: [], // los providers reales solo viven en auth.ts
