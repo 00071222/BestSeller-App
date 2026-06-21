@@ -21,7 +21,7 @@ export default function CheckoutPage() {
         items.map((i) => ({ productId: i.productId, quantity: i.quantity }))
       );
       clearCart();
-      router.push(`/checkout/confirmacion/${orderId}`);
+      router.push(`/checkout/confirmation/${orderId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocurrió un error al procesar el pago.");
       setIsProcessing(false);
