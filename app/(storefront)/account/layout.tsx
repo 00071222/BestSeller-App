@@ -1,8 +1,8 @@
-// app/(storefront)/cuenta/layout.tsx
+// app/(storefront)/account/layout.tsx
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-export default async function CuentaLayout({
+export default async function AccountLayout({
   children,
 }: {
   children: React.ReactNode;
