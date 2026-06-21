@@ -14,7 +14,7 @@ export function ProductCard({ product }: { product: ProductWithRelations }) {
   const cover = product.images[0] ?? "https://placehold.co/600x600?text=Sin+imagen";
 
   return (
-    <Link href={`/productos/${product.slug}`}>
+    <Link href={`/products/${product.slug}`}>
       <Card className="overflow-hidden h-full transition-shadow hover:shadow-lg">
         <div className="relative aspect-square bg-muted">
           <Image

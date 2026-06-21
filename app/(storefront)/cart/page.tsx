@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 
-export default function CarritoPage() {
+export default function CartPage() {
     const { items, updateQuantity, removeItem, totalPrice } = useCartStore();
 
     if (items.length === 0) {
@@ -14,7 +14,7 @@ export default function CarritoPage() {
             <div className="container mx-auto px-4 py-20 text-center">
                 <h1 className="text-xl font-semibold">Tu carrito está vacío</h1>
                 <Button asChild className="mt-4">
-                    <Link href="/productos">Ver productos</Link>
+                    <Link href="/products">Ver productos</Link>
                 </Button>
             </div>
         );
@@ -30,7 +30,7 @@ export default function CarritoPage() {
                             <Image src={item.image} alt={item.name} fill className="object-cover" />
                         </div>
                         <div className="flex-1">
-                            <Link href={`/productos/${item.slug}`} className="font-medium hover:underline">
+                            <Link href={`/products/${item.slug}`} className="font-medium hover:underline">
                                 {item.name}
                             </Link>
                             <p className="text-sm text-muted-foreground">${item.price.toFixed(2)} c/u</p>

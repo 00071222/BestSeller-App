@@ -3,14 +3,14 @@ import { cn } from "@/lib/utils";
 import { ProductCard } from "@/components/products/product-card";
 import { getAllProducts, getCategories } from "@/lib/data/products";
 
-export default async function ProductosPage({
+export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ categoria?: string }>;
+  searchParams: Promise<{ category?: string }>;
 }) {
-  const { categoria } = await searchParams;
+  const { category } = await searchParams;
   const [products, categories] = await Promise.all([
-    getAllProducts(categoria),
+    getAllProducts(category),
     getCategories(),
   ]);
 
@@ -20,10 +20,10 @@ export default async function ProductosPage({
 
       <div className="flex gap-2 mb-8 flex-wrap">
         <Link
-          href="/productos"
+          href="/products"
           className={cn(
             "px-3 py-1 rounded-full text-sm border",
-            !categoria && "bg-primary text-primary-foreground"
+            !category && "bg-primary text-primary-foreground"
           )}
         >
           Todos
@@ -31,10 +31,10 @@ export default async function ProductosPage({
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/productos?categoria=${cat.slug}`}
+            href={`/products?category=${cat.slug}`}
             className={cn(
               "px-3 py-1 rounded-full text-sm border",
-              categoria === cat.slug && "bg-primary text-primary-foreground"
+              category === cat.slug && "bg-primary text-primary-foreground"
             )}
           >
             {cat.name}

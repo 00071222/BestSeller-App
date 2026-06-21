@@ -72,8 +72,8 @@ export async function createOrder(items: CheckoutItem[]) {
     });
   });
 
-  revalidatePath("/admin/ventas");
-  revalidatePath("/cuenta/pedidos");
+  revalidatePath("/admin/sales");
+  revalidatePath("/account/orders");
 
   return order.id;
 }

@@ -67,7 +67,7 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
     mutation.mutate(payload, {
       onSuccess: () => {
         toast.success(isEditing ? "Producto actualizado" : "Producto creado");
-        router.push("/admin/productos");
+        router.push("/admin/products");
       },
       onError: () => toast.error("Ocurrió un error al guardar el producto"),
     });

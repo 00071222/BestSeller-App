@@ -40,7 +40,7 @@ export default function AdminProductosPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Productos</h1>
         <Button asChild>
-          <Link href="/admin/productos/nuevo">
+          <Link href="/admin/products/new">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo producto
           </Link>

@@ -16,7 +16,7 @@ export default async function HomePage() {
           Avon, Lbel, Cyzone y más, con envíos directos a tu puerta.
         </p>
         <Button asChild className="mt-6" size="lg">
-          <Link href="/productos">Ver catálogo</Link>
+          <Link href="/products">Ver catálogo</Link>
         </Button>
       </section>
 

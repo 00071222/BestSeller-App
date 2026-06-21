@@ -8,7 +8,7 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isOnAdmin = nextUrl.pathname.startsWith("/admin");
-      const isOnAccount = nextUrl.pathname.startsWith("/cuenta");
+      const isOnAccount = nextUrl.pathname.startsWith("/account");
       const isOnCheckout = nextUrl.pathname.startsWith("/checkout");
 
       if (isOnAdmin) {

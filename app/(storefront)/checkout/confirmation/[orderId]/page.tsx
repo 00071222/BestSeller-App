@@ -43,8 +43,8 @@ export default async function ConfirmacionPage({
       </div>
 
       <div className="flex gap-3 justify-center mt-8">
-        <Button asChild variant="outline"><Link href="/productos">Seguir comprando</Link></Button>
-        <Button asChild><Link href="/cuenta/pedidos">Ver mis pedidos</Link></Button>
+        <Button asChild variant="outline"><Link href="/products">Seguir comprando</Link></Button>
+        <Button asChild><Link href="/account/orders">Ver mis pedidos</Link></Button>
       </div>
     </div>
   );
