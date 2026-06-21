@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Minus, Plus } from "lucide-react";
-import { useCartStore } from "@/app/store/cart-store";
+import { useCartStore } from "@/store/cart-store";
 
 interface AddToCartButtonProps {
   productId: string;
