@@ -230,7 +230,7 @@ export default function AdminProductosPage() {
                           <span className="text-base font-extrabold text-emerald-500">
                             ${finalPrice.toFixed(2)}
                           </span>
-                          <span className="inline-flex items-center gap-0.5 text-[12px] font-extrabold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded-md mt-1 w-fit">
+                          <span className="inline-flex items-center gap-0.5 text-[24px] font-extrabold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded-md mt-1 w-fit">
                             <Percent className="h-4 w-4" />
                             {activeDiscount.percentage.toString()}% OFF
                           </span>
@@ -238,7 +238,7 @@ export default function AdminProductosPage() {
                             <CountdownTimer 
                               endsAt={activeDiscount.endsAt} 
                               variant="inline" 
-                              className="mt-1.5 text-[15px] font-bold text-red-500" 
+                              className="mt-1.5 text-[24px] font-bold text-red-500" 
                             />
                           )}
                         </div>
