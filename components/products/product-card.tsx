@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getActiveDiscount, calculateFinalPrice } from "@/lib/pricing";
+import { CountdownTimer } from "@/components/ui/countdown-timer";
 import type { Product, Discount, Category, Brand } from "@/app/generated/prisma/client";
 
 type ProductWithRelations = Product & { brand: Brand; categories: Category[]; discounts: Discount[] };
@@ -25,9 +26,16 @@ export function ProductCard({ product }: { product: ProductWithRelations }) {
             sizes="(max-width: 768px) 50vw, 25vw"
           />
           {discount && (
-            <Badge className="absolute top-2 right-2 bg-red-500 hover:bg-red-500">
+            <Badge className="absolute top-10 right-2 bg-red-500 hover:bg-red-500 shadow-md rounded-sm">
               -{discount.percentage.toString()}%
             </Badge>
+          )}
+          {discount && discount.type === "TEMPORARY" && discount.endsAt && (
+            <CountdownTimer 
+              endsAt={discount.endsAt} 
+              variant="small" 
+              className="absolute bottom-2 left-1/2 -translate-x-1/2"
+            />
           )}
         </div>
         <CardContent className="p-4">
