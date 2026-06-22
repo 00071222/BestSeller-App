@@ -14,6 +14,7 @@ import {
 import Image from "next/image";
 import { useCreateProduct, useUpdateProduct } from "@/hooks/use-products";
 import { Sparkles, Image as ImageIcon, Percent, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Category {
   id: string;
@@ -40,6 +41,16 @@ interface ProductFormProps {
   defaultValues?: Partial<ProductFormValues>;
 }
 
+function isValidUrl(str: string): boolean {
+  try {
+    if (str.startsWith("/")) return true;
+    const url = new URL(str);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function ProductForm({ categories, productId, defaultValues }: ProductFormProps) {
   const router = useRouter();
   const isEditing = !!productId;
@@ -58,6 +69,7 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
     discountEndsAt: defaultValues?.discountEndsAt ?? "",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const createProduct = useCreateProduct();
@@ -75,11 +87,40 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) {
+      newErrors.name = "El nombre del producto es obligatorio";
+    }
+    if (!form.description.trim()) {
+      newErrors.description = "La descripción es obligatoria";
+    }
+    if (!form.price.trim() || isNaN(Number(form.price)) || Number(form.price) < 0) {
+      newErrors.price = "El precio debe ser un número válido mayor o igual a 0";
+    }
+    if (!form.stock.trim() || isNaN(Number(form.stock)) || Number(form.stock) < 0) {
+      newErrors.stock = "El stock debe ser un número entero mayor o igual a 0";
+    }
+    if (!form.categoryId) {
+      newErrors.categoryId = "La categoría / marca es obligatoria";
+    }
+
+    // Validate URLs if entered
+    const invalidUrls = imageUrls.filter(url => !isValidUrl(url));
+    if (invalidUrls.length > 0) {
+      newErrors.images = "Una o más URLs de imagen no son válidas";
+    }
+
     const discountVal = form.discountPercentage ? Number(form.discountPercentage) : 0;
     if (discountVal < 0 || discountVal > 100) {
-      toast.error("El descuento debe estar entre 0 y 100");
+      newErrors.discountPercentage = "El descuento debe estar entre 0 y 100";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Por favor, corrige los errores en el formulario");
       return;
     }
+    setErrors({});
 
     const payload = {
       name: form.name,
@@ -100,7 +141,12 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
         toast.success(isEditing ? "Producto actualizado" : "Producto creado");
         router.push("/admin/products");
       },
-      onError: () => toast.error("Ocurrió un error al guardar el producto"),
+      onError: (err: unknown) => {
+        const errMsg =
+          (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+          "Ocurrió un error al guardar el producto";
+        toast.error(errMsg);
+      },
     });
   }
 
@@ -122,51 +168,60 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
           {/* Name field */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-1.5">
-              Nombre del Producto
+              Nombre del Producto <span className="text-red-500">*</span>
             </Label>
             <Input
               id="name"
-              required
               placeholder="Ej. Labial Mate Intenso Avon"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="bg-background focus-visible:ring-primary transition-all duration-200 rounded-xl"
+              className={cn(
+                "bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary transition-all duration-200 rounded-xl",
+                errors.name && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+              )}
             />
+            {errors.name && <p className="text-xs text-red-500 font-semibold mt-1">{errors.name}</p>}
           </div>
 
           {/* Description field */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-semibold">
-              Descripción
+              Descripción <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="description"
-              required
               rows={4}
               placeholder="Describe las características principales del producto..."
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="bg-background focus-visible:ring-primary transition-all duration-200 rounded-xl"
+              className={cn(
+                "bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary transition-all duration-200 rounded-xl",
+                errors.description && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+              )}
             />
+            {errors.description && <p className="text-xs text-red-500 font-semibold mt-1">{errors.description}</p>}
           </div>
 
           {/* Price, Stock and Discount Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="price" className="text-sm font-semibold flex items-center gap-1">
-                Precio ($)
+                Precio ($) <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="price"
                 type="number"
                 step="0.01"
                 min="0"
-                required
                 placeholder="0.00"
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
-                className="bg-background focus-visible:ring-primary transition-all duration-200 rounded-xl"
+                className={cn(
+                  "bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary transition-all duration-200 rounded-xl",
+                  errors.price && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+                )}
               />
+              {errors.price && <p className="text-xs text-red-500 font-semibold mt-1">{errors.price}</p>}
             </div>
 
             <div className="space-y-2">
@@ -182,24 +237,31 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
                 placeholder="Opcional"
                 value={form.discountPercentage}
                 onChange={(e) => setForm({ ...form, discountPercentage: e.target.value })}
-                className="bg-background focus-visible:ring-primary transition-all duration-200 rounded-xl"
+                className={cn(
+                  "bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary transition-all duration-200 rounded-xl",
+                  errors.discountPercentage && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+                )}
               />
+              {errors.discountPercentage && <p className="text-xs text-red-500 font-semibold mt-1">{errors.discountPercentage}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="stock" className="text-sm font-semibold">
-                Stock Disponible
+                Stock Disponible <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="stock"
                 type="number"
                 min="0"
-                required
                 placeholder="0"
                 value={form.stock}
                 onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                className="bg-background focus-visible:ring-primary transition-all duration-200 rounded-xl"
+                className={cn(
+                  "bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary transition-all duration-200 rounded-xl",
+                  errors.stock && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+                )}
               />
+              {errors.stock && <p className="text-xs text-red-500 font-semibold mt-1">{errors.stock}</p>}
             </div>
           </div>
 
@@ -214,7 +276,7 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
                   value={form.discountType}
                   onValueChange={(val) => setForm({ ...form, discountType: val })}
                 >
-                  <SelectTrigger id="discountType" className="bg-background rounded-xl">
+                  <SelectTrigger id="discountType" className="w-full bg-background border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-between px-3 py-2 h-9">
                     <SelectValue placeholder="Selecciona tipo de descuento" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -235,7 +297,7 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
                       type="datetime-local"
                       value={form.discountStartsAt}
                       onChange={(e) => setForm({ ...form, discountStartsAt: e.target.value })}
-                      className="bg-background focus-visible:ring-primary rounded-xl"
+                      className="bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary rounded-xl"
                     />
                   </div>
                   <div className="space-y-2">
@@ -247,7 +309,7 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
                       type="datetime-local"
                       value={form.discountEndsAt}
                       onChange={(e) => setForm({ ...form, discountEndsAt: e.target.value })}
-                      className="bg-background focus-visible:ring-primary rounded-xl"
+                      className="bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary rounded-xl"
                     />
                   </div>
                 </div>
@@ -258,13 +320,19 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
           {/* Category selection */}
           <div className="space-y-2">
             <Label htmlFor="category" className="text-sm font-semibold">
-              Categoría / Marca
+              Categoría / Marca <span className="text-red-500">*</span>
             </Label>
             <Select
               value={form.categoryId}
               onValueChange={(value) => setForm({ ...form, categoryId: value })}
             >
-              <SelectTrigger id="category" className="bg-background rounded-xl">
+              <SelectTrigger
+                id="category"
+                className={cn(
+                  "w-full bg-background border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-between px-3 py-2 h-9",
+                  errors.categoryId && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+                )}
+              >
                 <SelectValue placeholder="Selecciona una marca o categoría" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -275,6 +343,7 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
                 ))}
               </SelectContent>
             </Select>
+            {errors.categoryId && <p className="text-xs text-red-500 font-semibold mt-1">{errors.categoryId}</p>}
           </div>
 
           {/* Image URLs input */}
@@ -292,8 +361,12 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
                 setForm({ ...form, images: e.target.value });
                 setActiveImageIndex(0); // Reset preview index
               }}
-              className="bg-background focus-visible:ring-primary transition-all duration-200 rounded-xl text-xs font-mono"
+              className={cn(
+                "bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary transition-all duration-200 rounded-xl text-xs font-mono",
+                errors.images && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+              )}
             />
+            {errors.images && <p className="text-xs text-red-500 font-semibold mt-1">{errors.images}</p>}
           </div>
 
           {/* IsActive Switch */}
@@ -353,17 +426,24 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
 
             {/* Large Active Display Container */}
             <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-border/60 bg-background/50 shadow-inner flex items-center justify-center p-4">
-              <Image
-                src={activePreviewUrl}
-                alt="Active Preview Image"
-                fill
-                unoptimized
-                className="object-contain p-4 transition-all duration-300"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    "https://placehold.co/600x600?text=Error+al+Cargar+Imagen";
-                }}
-              />
+              {isValidUrl(activePreviewUrl) ? (
+                <Image
+                  src={activePreviewUrl}
+                  alt="Active Preview Image"
+                  fill
+                  unoptimized
+                  className="object-contain p-4 transition-all duration-300"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "https://placehold.co/600x600?text=Error+al+Cargar+Imagen";
+                  }}
+                />
+              ) : (
+                <div className="text-center p-4 text-muted-foreground flex flex-col items-center gap-2">
+                  <ImageIcon className="h-10 w-10 text-muted-foreground/40" />
+                  <p className="text-xs">URL de imagen inválida o incompleta</p>
+                </div>
+              )}
             </div>
 
             {/* Thumbnail Carousel list below */}
@@ -371,30 +451,39 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
               <div className="space-y-1.5">
                 <span className="text-xs font-semibold text-muted-foreground">Otras imágenes:</span>
                 <div className="flex flex-wrap gap-2">
-                  {imageUrls.map((url, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => setActiveImageIndex(index)}
-                      className={`relative h-16 w-16 rounded-xl overflow-hidden border transition-all duration-200 cursor-pointer ${
-                        activeImageIndex === index
-                          ? "border-primary ring-2 ring-primary/20 scale-105"
-                          : "border-border/60 hover:border-primary/60"
-                      }`}
-                    >
-                      <Image
-                        src={url}
-                        alt={`Thumbnail ${index + 1}`}
-                        fill
-                        unoptimized
-                        className="object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "https://placehold.co/150x150?text=Error";
-                        }}
-                      />
-                    </button>
-                  ))}
+                  {imageUrls.map((url, index) => {
+                    const isUrlValid = isValidUrl(url);
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setActiveImageIndex(index)}
+                        className={`relative h-16 w-16 rounded-xl overflow-hidden border transition-all duration-200 cursor-pointer ${
+                          activeImageIndex === index
+                            ? "border-primary ring-2 ring-primary/20 scale-105"
+                            : "border-border/60 hover:border-primary/60"
+                        }`}
+                      >
+                        {isUrlValid ? (
+                          <Image
+                            src={url}
+                            alt={`Thumbnail ${index + 1}`}
+                            fill
+                            unoptimized
+                            className="object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                "https://placehold.co/150x150?text=Error";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <ImageIcon className="h-6 w-6 text-muted-foreground/30" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

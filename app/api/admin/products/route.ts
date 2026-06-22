@@ -38,8 +38,26 @@ export async function POST(request: Request) {
     discountEndsAt,
   } = await request.json();
 
-  if (!name || !description || !categoryId || price == null || stock == null) {
-    return NextResponse.json({ error: "Faltan campos obligatorios" }, { status: 400 });
+  if (!name || name.trim() === "") {
+    return NextResponse.json({ error: "El nombre del producto es obligatorio" }, { status: 400 });
+  }
+  if (!description || description.trim() === "") {
+    return NextResponse.json({ error: "La descripción del producto es obligatoria" }, { status: 400 });
+  }
+  if (price == null || isNaN(Number(price))) {
+    return NextResponse.json({ error: "El precio debe ser un número válido" }, { status: 400 });
+  }
+  if (Number(price) < 0) {
+    return NextResponse.json({ error: "El precio no puede ser negativo" }, { status: 400 });
+  }
+  if (stock == null || isNaN(Number(stock))) {
+    return NextResponse.json({ error: "El stock debe ser un número válido" }, { status: 400 });
+  }
+  if (Number(stock) < 0) {
+    return NextResponse.json({ error: "El stock no puede ser negativo" }, { status: 400 });
+  }
+  if (!categoryId || categoryId.trim() === "") {
+    return NextResponse.json({ error: "La categoría / marca es obligatoria" }, { status: 400 });
   }
 
   const baseSlug = slugify(name);
@@ -55,8 +73,8 @@ export async function POST(request: Request) {
       slug,
       description,
       images: Array.isArray(images) ? images : [],
-      price,
-      stock,
+      price: Number(price),
+      stock: Number(stock),
       categoryId,
       isActive: isActive ?? true,
     },
