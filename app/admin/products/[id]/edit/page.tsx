@@ -42,7 +42,6 @@ export default async function EditarProductoPage({
 
   return (
     <div className="w-full">
-      <h1 className="text-2xl font-bold mb-6">Editar producto</h1>
       <ProductForm
         brands={brands}
         categories={categories}

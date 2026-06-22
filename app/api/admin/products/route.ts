@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { prisma, Prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 
 async function requireAdmin() {
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   // categoryId might be passed multiple times or as a comma separated string
   const categoryIds = searchParams.getAll("categoryId");
 
-  const where: any = {};
+  const where: Prisma.ProductWhereInput = {};
 
   if (search) {
     where.OR = [
@@ -49,9 +49,10 @@ export async function GET(request: Request) {
   }
 
   if (minPrice || maxPrice) {
-    where.price = {};
-    if (minPrice) where.price.gte = Number(minPrice);
-    if (maxPrice) where.price.lte = Number(maxPrice);
+    where.price = {
+      gte: minPrice ? Number(minPrice) : undefined,
+      lte: maxPrice ? Number(maxPrice) : undefined,
+    };
   }
 
   const products = await prisma.product.findMany({

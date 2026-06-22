@@ -18,7 +18,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Pencil, Trash2, Plus, Percent, Search, FilterX } from "lucide-react";
+import { Pencil, Trash2, Plus, Search, FilterX } from "lucide-react";
 import { useProducts, useDeleteProduct } from "@/hooks/use-products";
 import { useBrands } from "@/hooks/use-brands";
 import { useCategories } from "@/hooks/use-categories";
@@ -230,15 +230,14 @@ export default function AdminProductosPage() {
                           <span className="text-base font-extrabold text-emerald-500">
                             ${finalPrice.toFixed(2)}
                           </span>
-                          <span className="inline-flex items-center gap-0.5 text-[24px] font-extrabold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded-md mt-1 w-fit">
-                            <Percent className="h-4 w-4" />
+                          <span className="inline-flex items-center gap-0.5 text-[12px] font-extrabold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded-md mt-1 w-fit">
                             {activeDiscount.percentage.toString()}% OFF
                           </span>
                           {activeDiscount.type === "TEMPORARY" && activeDiscount.endsAt && (
                             <CountdownTimer 
                               endsAt={activeDiscount.endsAt} 
                               variant="inline" 
-                              className="mt-1.5 text-[24px] font-bold text-red-500" 
+                              className="mt-1.5 text-[14px] font-bold text-red-500" 
                             />
                           )}
                         </div>

@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma, Prisma } from "@/lib/prisma";
 
 export async function getFeaturedProducts(limit = 4) {
   return prisma.product.findMany({
@@ -19,7 +19,7 @@ interface ProductFilters {
 
 export async function getAllProducts(filters: ProductFilters = {}) {
   const { search, brandSlug, categorySlug, minPrice, maxPrice } = filters;
-  const where: any = { isActive: true };
+  const where: Prisma.ProductWhereInput = { isActive: true };
 
   if (search) {
     where.OR = [
@@ -39,9 +39,10 @@ export async function getAllProducts(filters: ProductFilters = {}) {
   }
 
   if (minPrice !== undefined || maxPrice !== undefined) {
-    where.price = {};
-    if (minPrice !== undefined) where.price.gte = minPrice;
-    if (maxPrice !== undefined) where.price.lte = maxPrice;
+    where.price = {
+      gte: minPrice,
+      lte: maxPrice,
+    };
   }
 
   return prisma.product.findMany({
