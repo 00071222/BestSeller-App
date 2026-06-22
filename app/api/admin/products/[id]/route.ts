@@ -22,7 +22,8 @@ export async function PATCH(
     images,
     price,
     stock,
-    categoryId,
+    brandId,
+    categories, // Array of category IDs
     isActive,
     discountPercentage,
     discountType,
@@ -32,7 +33,20 @@ export async function PATCH(
 
   const product = await prisma.product.update({
     where: { id },
-    data: { name, description, images, price: price !== undefined ? Number(price) : undefined, stock: stock !== undefined ? Number(stock) : undefined, categoryId, isActive },
+    data: { 
+      name, 
+      description, 
+      images, 
+      price: price !== undefined ? Number(price) : undefined, 
+      stock: stock !== undefined ? Number(stock) : undefined, 
+      brandId, 
+      isActive,
+      categories: categories !== undefined ? {
+        set: [], // Clear existing
+        connect: categories.map((catId: string) => ({ id: catId })) // Add new
+      } : undefined
+    },
+    include: { brand: true, categories: true, discounts: true }
   });
 
   if (discountPercentage !== undefined) {

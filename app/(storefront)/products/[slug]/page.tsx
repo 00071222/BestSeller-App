@@ -31,7 +31,7 @@ export default async function ProductoPage({
       </div>
 
       <div>
-        <p className="text-sm text-muted-foreground">{product.category.name}</p>
+        <p className="text-sm text-muted-foreground">{product.brand?.name}</p>
         <h1 className="text-2xl font-bold mt-1">{product.name}</h1>
 
         <div className="mt-4 flex items-baseline gap-3">

@@ -63,6 +63,17 @@ model User {
 // CATÁLOGO
 // ──────────────────────────────
 
+model Brand {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  products Product[]
+
+  @@map("brands")
+}
+
 model Category {
   id        String   @id @default(cuid())
   name      String   @unique
@@ -86,14 +97,16 @@ model Product {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  categoryId String   @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
+  brandId    String   @map("brand_id")
+  brand      Brand    @relation(fields: [brandId], references: [id])
+  
+  categories Category[]
 
   discounts  Discount[]
   favorites  Favorite[]
   orderItems OrderItem[]
 
-  @@index([categoryId])
+  @@index([brandId])
   @@map("products")
 }
 

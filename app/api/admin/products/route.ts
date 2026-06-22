@@ -9,12 +9,54 @@ async function requireAdmin() {
   return session;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
+  const { searchParams } = new URL(request.url);
+  const search = searchParams.get("search");
+  const brandId = searchParams.get("brandId");
+  const minPrice = searchParams.get("minPrice");
+  const maxPrice = searchParams.get("maxPrice");
+  
+  // categoryId might be passed multiple times or as a comma separated string
+  const categoryIds = searchParams.getAll("categoryId");
+
+  const where: any = {};
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  if (brandId) {
+    where.brandId = brandId;
+  }
+
+  if (categoryIds.length > 0) {
+    // If there is only one string with commas, split it
+    const ids = categoryIds.length === 1 && categoryIds[0].includes(",") 
+      ? categoryIds[0].split(",") 
+      : categoryIds;
+    
+    where.categories = {
+      some: {
+        id: { in: ids }
+      }
+    };
+  }
+
+  if (minPrice || maxPrice) {
+    where.price = {};
+    if (minPrice) where.price.gte = Number(minPrice);
+    if (maxPrice) where.price.lte = Number(maxPrice);
+  }
+
   const products = await prisma.product.findMany({
-    include: { category: true, discounts: true },
+    where,
+    include: { brand: true, categories: true, discounts: true },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(products);
@@ -30,7 +72,8 @@ export async function POST(request: Request) {
     images,
     price,
     stock,
-    categoryId,
+    brandId,
+    categories, // Array of category IDs
     isActive,
     discountPercentage,
     discountType,
@@ -56,8 +99,8 @@ export async function POST(request: Request) {
   if (Number(stock) < 0) {
     return NextResponse.json({ error: "El stock no puede ser negativo" }, { status: 400 });
   }
-  if (!categoryId || categoryId.trim() === "") {
-    return NextResponse.json({ error: "La categoría / marca es obligatoria" }, { status: 400 });
+  if (!brandId || brandId.trim() === "") {
+    return NextResponse.json({ error: "La marca es obligatoria" }, { status: 400 });
   }
 
   const baseSlug = slugify(name);
@@ -75,7 +118,10 @@ export async function POST(request: Request) {
       images: Array.isArray(images) ? images : [],
       price: Number(price),
       stock: Number(stock),
-      categoryId,
+      brandId,
+      categories: Array.isArray(categories) && categories.length > 0
+        ? { connect: categories.map((id: string) => ({ id })) }
+        : undefined,
       isActive: isActive ?? true,
     },
   });

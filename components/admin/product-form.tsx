@@ -11,10 +11,16 @@ import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { useCreateProduct, useUpdateProduct } from "@/hooks/use-products";
 import { Sparkles, Image as ImageIcon, Percent, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface Brand {
+  id: string;
+  name: string;
+}
 
 interface Category {
   id: string;
@@ -26,7 +32,8 @@ interface ProductFormValues {
   description: string;
   price: string;
   stock: string;
-  categoryId: string;
+  brandId: string;
+  categories: string[];
   isActive: boolean;
   images: string;
   discountPercentage: string;
@@ -36,6 +43,7 @@ interface ProductFormValues {
 }
 
 interface ProductFormProps {
+  brands: Brand[];
   categories: Category[];
   productId?: string;
   defaultValues?: Partial<ProductFormValues>;
@@ -51,7 +59,7 @@ function isValidUrl(str: string): boolean {
   }
 }
 
-export function ProductForm({ categories, productId, defaultValues }: ProductFormProps) {
+export function ProductForm({ brands, categories, productId, defaultValues }: ProductFormProps) {
   const router = useRouter();
   const isEditing = !!productId;
 
@@ -60,7 +68,8 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
     description: defaultValues?.description ?? "",
     price: defaultValues?.price ?? "",
     stock: defaultValues?.stock ?? "",
-    categoryId: defaultValues?.categoryId ?? "",
+    brandId: defaultValues?.brandId ?? "",
+    categories: defaultValues?.categories ?? [],
     isActive: defaultValues?.isActive ?? true,
     images: defaultValues?.images ?? "",
     discountPercentage: defaultValues?.discountPercentage ?? "",
@@ -76,13 +85,20 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
   const updateProduct = useUpdateProduct(productId ?? "");
   const mutation = isEditing ? updateProduct : createProduct;
 
-  // Split images for dynamic preview
   const imageUrls = form.images
     .split(",")
     .map((url) => url.trim())
     .filter(Boolean);
 
   const activePreviewUrl = imageUrls[activeImageIndex] || imageUrls[0];
+
+  const toggleCategory = (id: string) => {
+    if (form.categories.includes(id)) {
+      setForm({ ...form, categories: form.categories.filter((c) => c !== id) });
+    } else {
+      setForm({ ...form, categories: [...form.categories, id] });
+    }
+  };
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,11 +116,10 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
     if (!form.stock.trim() || isNaN(Number(form.stock)) || Number(form.stock) < 0) {
       newErrors.stock = "El stock debe ser un número entero mayor o igual a 0";
     }
-    if (!form.categoryId) {
-      newErrors.categoryId = "La categoría / marca es obligatoria";
+    if (!form.brandId) {
+      newErrors.brandId = "La marca es obligatoria";
     }
 
-    // Validate URLs if entered
     const invalidUrls = imageUrls.filter(url => !isValidUrl(url));
     if (invalidUrls.length > 0) {
       newErrors.images = "Una o más URLs de imagen no son válidas";
@@ -127,7 +142,8 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
       description: form.description,
       price: Number(form.price),
       stock: Number(form.stock),
-      categoryId: form.categoryId,
+      brandId: form.brandId,
+      categories: form.categories,
       isActive: form.isActive,
       images: imageUrls,
       discountPercentage: discountVal,
@@ -152,7 +168,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-7xl mx-auto w-full">
-      {/* Left side: Product edit form */}
       <form
         onSubmit={handleSubmit}
         className="lg:col-span-7 space-y-6 bg-card border border-border/40 p-8 rounded-2xl shadow-xl backdrop-blur-md transition-all duration-300 w-full"
@@ -165,7 +180,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
         </div>
 
         <div className="space-y-4">
-          {/* Name field */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-1.5">
               Nombre del Producto <span className="text-red-500">*</span>
@@ -183,7 +197,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
             {errors.name && <p className="text-xs text-red-500 font-semibold mt-1">{errors.name}</p>}
           </div>
 
-          {/* Description field */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-semibold">
               Descripción <span className="text-red-500">*</span>
@@ -202,7 +215,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
             {errors.description && <p className="text-xs text-red-500 font-semibold mt-1">{errors.description}</p>}
           </div>
 
-          {/* Price, Stock and Discount Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="price" className="text-sm font-semibold flex items-center gap-1">
@@ -265,7 +277,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
             </div>
           </div>
 
-          {/* Discount Settings Section (only if discount > 0) */}
           {Number(form.discountPercentage) > 0 && (
             <div className="p-4 border border-border/40 bg-muted/10 rounded-xl space-y-4 animate-fade-in">
               <div className="space-y-2">
@@ -317,36 +328,53 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
             </div>
           )}
 
-          {/* Category selection */}
           <div className="space-y-2">
-            <Label htmlFor="category" className="text-sm font-semibold">
-              Categoría / Marca <span className="text-red-500">*</span>
+            <Label htmlFor="brand" className="text-sm font-semibold">
+              Marca <span className="text-red-500">*</span>
             </Label>
             <Select
-              value={form.categoryId}
-              onValueChange={(value) => setForm({ ...form, categoryId: value })}
+              value={form.brandId}
+              onValueChange={(value) => setForm({ ...form, brandId: value })}
             >
               <SelectTrigger
-                id="category"
+                id="brand"
                 className={cn(
                   "w-full bg-background border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-between px-3 py-2 h-9",
-                  errors.categoryId && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
+                  errors.brandId && "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/20"
                 )}
               >
-                <SelectValue placeholder="Selecciona una marca o categoría" />
+                <SelectValue placeholder="Selecciona una marca" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id} className="rounded-lg">
-                    {cat.name}
+                {brands.map((brand) => (
+                  <SelectItem key={brand.id} value={brand.id} className="rounded-lg">
+                    {brand.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.categoryId && <p className="text-xs text-red-500 font-semibold mt-1">{errors.categoryId}</p>}
+            {errors.brandId && <p className="text-xs text-red-500 font-semibold mt-1">{errors.brandId}</p>}
           </div>
 
-          {/* Image URLs input */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold">Categorías (Etiquetas)</Label>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => {
+                const isSelected = form.categories.includes(cat.id);
+                return (
+                  <Badge
+                    key={cat.id}
+                    variant={isSelected ? "default" : "outline"}
+                    className="cursor-pointer hover:bg-primary/80 transition-colors py-1.5 px-3 rounded-full"
+                    onClick={() => toggleCategory(cat.id)}
+                  >
+                    {cat.name}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="images" className="text-sm font-semibold flex items-center gap-1.5">
               <ImageIcon className="h-4 w-4 text-muted-foreground" />
@@ -359,7 +387,7 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
               value={form.images}
               onChange={(e) => {
                 setForm({ ...form, images: e.target.value });
-                setActiveImageIndex(0); // Reset preview index
+                setActiveImageIndex(0);
               }}
               className={cn(
                 "bg-background border-slate-300 dark:border-slate-700 focus-visible:ring-primary transition-all duration-200 rounded-xl text-xs font-mono",
@@ -369,7 +397,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
             {errors.images && <p className="text-xs text-red-500 font-semibold mt-1">{errors.images}</p>}
           </div>
 
-          {/* IsActive Switch */}
           <div className="flex items-center gap-3 p-4 border border-border/30 bg-muted/10 rounded-xl">
             <Switch
               id="isActive"
@@ -410,7 +437,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
         </div>
       </form>
 
-      {/* Right side: Large dedicated preview module */}
       <div className="lg:col-span-5 lg:sticky lg:top-8 bg-card border border-border/40 rounded-2xl p-6 shadow-xl flex flex-col gap-4 min-h-[480px] w-full justify-center items-center">
         {imageUrls.length > 0 ? (
           <div className="w-full space-y-4">
@@ -424,7 +450,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
               </span>
             </div>
 
-            {/* Large Active Display Container */}
             <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-border/60 bg-background/50 shadow-inner flex items-center justify-center p-4">
               {isValidUrl(activePreviewUrl) ? (
                 <Image
@@ -446,7 +471,6 @@ export function ProductForm({ categories, productId, defaultValues }: ProductFor
               )}
             </div>
 
-            {/* Thumbnail Carousel list below */}
             {imageUrls.length > 1 && (
               <div className="space-y-1.5">
                 <span className="text-xs font-semibold text-muted-foreground">Otras imágenes:</span>

@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getActiveDiscount, calculateFinalPrice } from "@/lib/pricing";
-import type { Product, Discount, Category } from "@/app/generated/prisma/client";
+import type { Product, Discount, Category, Brand } from "@/app/generated/prisma/client";
 
-type ProductWithRelations = Product & { category: Category; discounts: Discount[] };
+type ProductWithRelations = Product & { brand: Brand; categories: Category[]; discounts: Discount[] };
 
 export function ProductCard({ product }: { product: ProductWithRelations }) {
   const discount = getActiveDiscount(product.discounts);
@@ -31,7 +31,7 @@ export function ProductCard({ product }: { product: ProductWithRelations }) {
           )}
         </div>
         <CardContent className="p-4">
-          <p className="text-xs text-muted-foreground">{product.category.name}</p>
+          <p className="text-xs text-muted-foreground font-semibold">{product.brand?.name}</p>
           <h3 className="font-medium line-clamp-2">{product.name}</h3>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex items-baseline gap-2">

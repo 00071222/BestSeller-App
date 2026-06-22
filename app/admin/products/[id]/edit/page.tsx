@@ -8,11 +8,15 @@ export default async function EditarProductoPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [product, categories] = await Promise.all([
+  const [product, brands, categories] = await Promise.all([
     prisma.product.findUnique({
       where: { id },
-      include: { discounts: { where: { isActive: true } } },
+      include: { 
+        discounts: { where: { isActive: true } },
+        categories: true,
+      },
     }),
+    prisma.brand.findMany({ orderBy: { name: "asc" } }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
 
@@ -37,9 +41,10 @@ export default async function EditarProductoPage({
   const discountEndsAt = activeDiscount ? formatDateTimeLocal(activeDiscount.endsAt ? new Date(activeDiscount.endsAt) : null) : "";
 
   return (
-    <div>
+    <div className="w-full">
       <h1 className="text-2xl font-bold mb-6">Editar producto</h1>
       <ProductForm
+        brands={brands}
         categories={categories}
         productId={product.id}
         defaultValues={{
@@ -47,7 +52,8 @@ export default async function EditarProductoPage({
           description: product.description,
           price: product.price.toString(),
           stock: product.stock.toString(),
-          categoryId: product.categoryId,
+          brandId: product.brandId,
+          categories: product.categories.map(c => c.id),
           isActive: product.isActive,
           images: product.images.join(", "),
           discountPercentage,

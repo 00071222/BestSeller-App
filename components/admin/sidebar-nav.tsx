@@ -15,6 +15,16 @@ export function SidebarNav() {
       icon: Tag,
     },
     {
+      href: "/admin/brands",
+      label: "Marcas",
+      icon: Tag,
+    },
+    {
+      href: "/admin/categories",
+      label: "Categorías",
+      icon: Tag,
+    },
+    {
       href: "/admin/sales",
       label: "Ventas",
       icon: DollarSign,

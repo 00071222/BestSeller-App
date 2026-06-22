@@ -22,8 +22,9 @@ export interface AdminProduct {
   price: string;
   stock: number;
   isActive: boolean;
-  categoryId: string;
-  category: { id: string; name: string };
+  brandId: string;
+  brand: { id: string; name: string };
+  categories: { id: string; name: string }[];
   discounts?: Discount[];
 }
 
@@ -33,7 +34,8 @@ export interface ProductInput {
   images: string[];
   price: number;
   stock: number;
-  categoryId: string;
+  brandId: string;
+  categories: string[];
   isActive: boolean;
   discountPercentage?: number;
   discountType?: "PERMANENT" | "TEMPORARY";
@@ -41,11 +43,25 @@ export interface ProductInput {
   discountEndsAt?: string | null;
 }
 
-export function useProducts() {
+export function useProducts(params?: Record<string, string | string[]>) {
   return useQuery({
-    queryKey: ["admin-products"],
+    queryKey: ["admin-products", params],
     queryFn: async () => {
-      const { data } = await api.get<AdminProduct[]>("/admin/products");
+      const searchParams = new URLSearchParams();
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+             if (Array.isArray(value)) {
+                value.forEach(v => searchParams.append(key, v));
+             } else {
+                searchParams.append(key, value.toString());
+             }
+          }
+        });
+      }
+      const qs = searchParams.toString();
+      const url = `/admin/products${qs ? `?${qs}` : ""}`;
+      const { data } = await api.get<AdminProduct[]>(url);
       return data;
     },
   });

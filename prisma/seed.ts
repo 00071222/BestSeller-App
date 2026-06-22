@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "../app/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
@@ -21,11 +22,29 @@ async function main() {
     },
   });
 
-  // 2. Categorías
-  const categoriesData = [
+  // 2. Marcas (Brands)
+  const brandsData = [
     { name: "Avon", slug: "avon" },
     { name: "Lbel", slug: "lbel" },
     { name: "Cyzone", slug: "cyzone" },
+  ];
+
+  const brands = await Promise.all(
+    brandsData.map((b) =>
+      prisma.brand.upsert({ where: { slug: b.slug }, update: {}, create: b })
+    )
+  );
+  const avon = brands.find((b) => b.slug === "avon")!;
+  const lbel = brands.find((b) => b.slug === "lbel")!;
+  const cyzone = brands.find((b) => b.slug === "cyzone")!;
+
+  // 3. Categorías (Tags)
+  const categoriesData = [
+    { name: "Mujer", slug: "mujer" },
+    { name: "Hombre", slug: "hombre" },
+    { name: "Hogar", slug: "hogar" },
+    { name: "Niños", slug: "ninos" },
+    { name: "Belleza", slug: "belleza" },
   ];
 
   const categories = await Promise.all(
@@ -33,11 +52,10 @@ async function main() {
       prisma.category.upsert({ where: { slug: c.slug }, update: {}, create: c })
     )
   );
-  const avon = categories.find((c) => c.slug === "avon")!;
-  const lbel = categories.find((c) => c.slug === "lbel")!;
-  const cyzone = categories.find((c) => c.slug === "cyzone")!;
+  const mujer = categories.find((c) => c.slug === "mujer")!;
+  const belleza = categories.find((c) => c.slug === "belleza")!;
 
-  // 3. Productos
+  // 4. Productos
   const labial = await prisma.product.upsert({
     where: { slug: "labial-mate-rojo-avon" },
     update: {},
@@ -48,7 +66,10 @@ async function main() {
       images: ["https://placehold.co/600x600?text=Labial+Rojo"],
       price: 8.99,
       stock: 25,
-      categoryId: avon.id,
+      brandId: avon.id,
+      categories: {
+        connect: [{ id: mujer.id }, { id: belleza.id }]
+      }
     },
   });
 
@@ -62,7 +83,10 @@ async function main() {
       images: ["https://placehold.co/600x600?text=Perfume"],
       price: 24.5,
       stock: 12,
-      categoryId: lbel.id,
+      brandId: lbel.id,
+      categories: {
+        connect: [{ id: mujer.id }, { id: belleza.id }]
+      }
     },
   });
 
@@ -76,7 +100,10 @@ async function main() {
       images: ["https://placehold.co/600x600?text=Sombras"],
       price: 15.0,
       stock: 18,
-      categoryId: cyzone.id,
+      brandId: cyzone.id,
+      categories: {
+        connect: [{ id: mujer.id }, { id: belleza.id }]
+      }
     },
   });
 
